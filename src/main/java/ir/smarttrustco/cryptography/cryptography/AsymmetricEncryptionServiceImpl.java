@@ -33,6 +33,7 @@ public class AsymmetricEncryptionServiceImpl implements AsymmetricEncryptionServ
         }
     }
     private PrivateKey getPrivateKeyFromString(String privateKeyStr) throws Exception {
+        privateKeyStr = privateKeyStr.replaceAll("\\s+", "").trim();
         byte[] decode = Base64.getDecoder().decode(privateKeyStr);
         PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(decode);
         KeyFactory keyFactory = KeyFactory.getInstance(ASYMMETRIC_ALGORITHM);

@@ -9,7 +9,6 @@ import org.mapstruct.Mapping;
 public interface UserMapper extends BaseMapper<UserEntity, UserRegistryDto> {
     @Mapping(source = "personId", target = "person.id")
     UserEntity toEntity(UserRegistryDto registryDto);
-
     @Mapping(source = "person.id", target = "personId")
     UserRegistryDto toDto(UserEntity userEntity);
 

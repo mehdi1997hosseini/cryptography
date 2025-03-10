@@ -6,11 +6,14 @@ import ir.smarttrustco.cryptography.cryptography.AsymmetricEncryptionService;
 import ir.smarttrustco.cryptography.cryptography.EncryptionKeyType;
 import ir.smarttrustco.cryptography.cryptography.SymmetricEncryptionService;
 import ir.smarttrustco.cryptography.person.PersonEntity;
+import ir.smarttrustco.cryptography.user.dto.UserLoginByKeyDto;
 import ir.smarttrustco.cryptography.user.dto.UserLoginDto;
 import ir.smarttrustco.cryptography.user.dto.UserRegistryDto;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -35,11 +38,22 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, Long, UserRepos
 
     @Override
     public Boolean login(UserLoginDto login) {
+        File privateKeyFile = ConverterData.convertMultipartFileToFile(login.getFile());
+        String privateKeyStr = ConverterData.readFileAndConvertToString(privateKeyFile);
         UserEntity user = getEntityManager().createQuery("select u from UserEntity u where u.username = :username", UserEntity.class)
                 .setParameter("username", login.getUsername())
                 .getSingleResult();
 
-        return user != null && asymmetricEncryption.decryptWithAsymmetric(login.getPrivateKey(), user.getPassword()).equals(login.getPassword());
+        return user != null && asymmetricEncryption.decryptWithAsymmetric(privateKeyStr, user.getPassword()).equals(login.getPassword());
+    }
+
+    @Override
+    public Boolean login(UserLoginByKeyDto user) {
+        UserEntity entity = getEntityManager().createQuery("select u from UserEntity u where u.username = :username", UserEntity.class)
+                .setParameter("username", user.getUsername())
+                .getSingleResult();
+
+        return entity != null && asymmetricEncryption.decryptWithAsymmetric(user.getPrivateKeyStr(), user.getPassword()).equals(user.getPassword());
     }
 
     @Override
@@ -61,7 +75,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, Long, UserRepos
         UserEntity entity = userMapper.toEntity(user);
         entity.setPublicKey(keys.get(EncryptionKeyType.PUBLIC_KEY));
         entity.setPassword(asymmetricEncryption.encryptWithAsymmetric(keys.get(EncryptionKeyType.PUBLIC_KEY), entity.getPassword()));
-        entity.setId(user.getPersonId());
+//        entity.getPerson().setId(user.getPersonId());
         save(entity);
 
         return ConverterData.convertStringToResource(user.getUsername(), keys.get(EncryptionKeyType.PRIVATE_KEY));
