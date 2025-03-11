@@ -16,12 +16,12 @@ public class MessageEntity extends BaseEntity<Long> {
 
     @Column(name = "TITLE")
     private String title;
-    @Column(name = "CODE")
+    @Column(name = "CODE",unique = true)
     private Long code;
     @Column(name = "IS_READ")
     private Boolean isRead = false;
     @Lob
-    @Column(name = "TEXT_MESSAGE")
+    @Column(name = "TEXT_MESSAGE" , length = 100000)
     private String encryptedMessage;
 
     @ManyToOne(fetch = FetchType.LAZY)

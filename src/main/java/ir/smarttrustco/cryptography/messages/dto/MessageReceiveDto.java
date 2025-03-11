@@ -7,10 +7,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MessageReceive {
+public class MessageReceiveDto {
     private Long code;
     private String title;
-    private String message;
+    private Boolean isRead;
     private String sender;
 
 }

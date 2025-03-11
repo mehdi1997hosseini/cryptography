@@ -51,7 +51,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, Long, UserRepos
                 .setParameter("username", user.getUsername())
                 .getSingleResult();
 
-        return entity != null && asymmetricEncryption.decryptWithAsymmetric(user.getPrivateKeyStr(), user.getPassword()).equals(user.getPassword());
+        return entity != null && asymmetricEncryption.decryptWithAsymmetric(user.getPrivateKeyStr(), entity.getPassword()).equals(user.getPassword());
     }
 
     @Override
