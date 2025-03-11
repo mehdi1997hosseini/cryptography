@@ -10,7 +10,7 @@ interface MasterCryptographyService {
     final String ASYMMETRIC_ALGORITHM = "RSA";
     final String SYMMETRIC_ALGORITHM = "AES";
     final String SYMMETRIC_ALGORITHM_SHA256 = "SHA-256";
-    final int KEY_PAIR_SIZE = 512;
+    final int KEY_PAIR_SIZE = 2048;
     final int KEY_SECRET_SIZE = 512;
 
     // final SecretKey SECRET_KEY = MasterCryptography.KeyEncryption.generateSecretKey();

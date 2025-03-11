@@ -1,6 +1,5 @@
 package ir.smarttrustco.cryptography.basic.converter;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,9 +10,9 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Objects;
 
-public abstract class ConverterData {
+public abstract class ConverterFileUtil {
 
-    private ConverterData() {
+    private ConverterFileUtil() {
     }
 
     public static Resource convertStringToResource(String fileName, String fileContent) {

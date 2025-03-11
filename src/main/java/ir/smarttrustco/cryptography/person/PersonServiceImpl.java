@@ -17,21 +17,21 @@ public class PersonServiceImpl extends BaseServiceImpl<PersonEntity, Long, Perso
 
     @Override
     public void save(PersonEntity entity) {
-        entity.setSsn(symmetricEncryption.encryptWithSymmitric(entity.getPhoneNumber(), entity.getSsn()));
+        entity.setSsn(symmetricEncryption.encryptWithSymmetric(entity.getPhoneNumber(), entity.getSsn()));
         super.save(entity);
     }
 
     @Override
     public PersonEntity findById(Long id) {
         PersonEntity entity = super.findById(id);
-        entity.setSsn(symmetricEncryption.decryptWithSymmitric(entity.getPhoneNumber(), entity.getSsn()));
+        entity.setSsn(symmetricEncryption.decryptWithSymmetric(entity.getPhoneNumber(), entity.getSsn()));
         return entity;
     }
 
 //    public List<PersonEntity> findAll() {
 //        List<PersonEntity> entities = super.findAll();
 //        return !entities.isEmpty() ? entities.stream()
-//                .peek((entity)->entity.setSsn(symmetricEncryption.decrypt(entity.getPhoneNumber(),entity.getSsn()))).toList() : null;
+//                .peek((entity)->entity.setSsn(symmetricEncryption.decryptWithSymmetric(entity.getPhoneNumber(),entity.getSsn()))).toList() : null;
 //    }
 
 }

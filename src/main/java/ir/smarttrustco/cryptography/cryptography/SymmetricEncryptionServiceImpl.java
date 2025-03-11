@@ -11,7 +11,7 @@ import static ir.smarttrustco.cryptography.cryptography.MasterCryptographyServic
 @Component
 public class SymmetricEncryptionServiceImpl implements SymmetricEncryptionService {
     @Override
-    public String encryptWithSymmitric(String username, String data) {
+    public String encryptWithSymmetric(String username, String data) {
         try {
             SecretKey secretKey = MasterCryptographyService.KeyEncryption.generatorSecretKeyByUsername(username);
             Cipher cipher  = Cipher.getInstance(SYMMETRIC_ALGORITHM);
@@ -24,7 +24,7 @@ public class SymmetricEncryptionServiceImpl implements SymmetricEncryptionServic
     }
 
     @Override
-    public String decryptWithSymmitric(String username, String encryptedData) {
+    public String decryptWithSymmetric(String username, String encryptedData) {
         try {
             SecretKey secretKey = MasterCryptographyService.KeyEncryption.generatorSecretKeyByUsername(username);
             Cipher cipher = Cipher.getInstance(SYMMETRIC_ALGORITHM);

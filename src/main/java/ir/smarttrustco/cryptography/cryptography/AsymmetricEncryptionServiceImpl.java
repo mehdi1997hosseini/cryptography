@@ -3,10 +3,7 @@ package ir.smarttrustco.cryptography.cryptography;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
-import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
@@ -16,17 +13,9 @@ import java.util.Map;
 @Component
 public class AsymmetricEncryptionServiceImpl implements AsymmetricEncryptionService, MasterCryptographyService {
 
-    private static String generatePrivateKey(KeyPair keyPair, String key) {
+    private static String encodeKeyToString(Key keyPair) {
         try {
-            byte[] encryptedBytes = keyPair.getPrivate().getEncoded();
-            return Base64.getEncoder().encodeToString(encryptedBytes);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
-    }
-    private static String generatePublicKey(KeyPair keyPair, String key) {
-        try {
-            byte[] encryptedBytes = keyPair.getPublic().getEncoded();
+            byte[] encryptedBytes = keyPair.getEncoded();
             return Base64.getEncoder().encodeToString(encryptedBytes);
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
@@ -49,8 +38,8 @@ public class AsymmetricEncryptionServiceImpl implements AsymmetricEncryptionServ
     public Map<EncryptionKeyType, String> generateAsymmetricKeys(String key) {
         Map<EncryptionKeyType, String> asymmetricKeys = new HashMap<>();
         KeyPair keyPair = KeyEncryption.generateKeyPair();
-        asymmetricKeys.put(EncryptionKeyType.PRIVATE_KEY, generatePrivateKey(keyPair, key));
-        asymmetricKeys.put(EncryptionKeyType.PUBLIC_KEY, generatePublicKey(keyPair, key));
+        asymmetricKeys.put(EncryptionKeyType.PRIVATE_KEY, encodeKeyToString(keyPair.getPrivate()));
+        asymmetricKeys.put(EncryptionKeyType.PUBLIC_KEY, encodeKeyToString(keyPair.getPublic()));
         return asymmetricKeys;
     }
     @Override

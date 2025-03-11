@@ -31,7 +31,7 @@ public class MessageServiceImpl extends BaseServiceImpl<MessageEntity, Long, Mes
                 .setHint("jakarta.persistence.fetchgraph", entityGraph)
                 .getSingleResult();
         try {
-            String decryptMessage = symmetricEncryption.decryptWithSymmitric(entity.getReceiver().getUsername(), entity.getEncryptedMessage());
+            String decryptMessage = symmetricEncryption.decryptWithSymmetric(entity.getReceiver().getUsername(), entity.getEncryptedMessage());
             entity.setEncryptedMessage(decryptMessage);
         } catch (Exception e) {
             throw new RuntimeException(e);
