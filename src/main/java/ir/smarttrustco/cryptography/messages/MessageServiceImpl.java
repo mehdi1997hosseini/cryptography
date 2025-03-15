@@ -3,6 +3,7 @@ package ir.smarttrustco.cryptography.messages;
 import ir.smarttrustco.cryptography.basic.BaseServiceImpl;
 import ir.smarttrustco.cryptography.basic.utility.NumberUtils;
 import ir.smarttrustco.cryptography.cryptography.AsymmetricEncryptionService;
+import ir.smarttrustco.cryptography.cryptography.DigitalSignatureService;
 import ir.smarttrustco.cryptography.cryptography.SymmetricEncryptionService;
 import ir.smarttrustco.cryptography.messages.dto.MapperMessageReceive;
 import ir.smarttrustco.cryptography.messages.dto.MessageDto;
@@ -23,15 +24,18 @@ public class MessageServiceImpl extends BaseServiceImpl<MessageEntity, Long, Mes
     private final AsymmetricEncryptionService asymmetricEncryption;
     private final MapperMessageReceive messageReceiveMapper;
     private final MessageMapper messageMapper;
+    private final DigitalSignatureService digitalSignature;
+
 
     public MessageServiceImpl(MessageRepository repository, UserService userService,
                               AsymmetricEncryptionService asymmetricEncryption, MapperMessageReceive messageReceiveMapper,
-                              MessageMapper messageMapper) {
+                              MessageMapper messageMapper, DigitalSignatureService digitalSignature) {
         super(repository);
         this.userService = userService;
         this.asymmetricEncryption = asymmetricEncryption;
         this.messageReceiveMapper = messageReceiveMapper;
         this.messageMapper = messageMapper;
+        this.digitalSignature = digitalSignature;
     }
 
     @Override
@@ -87,6 +91,15 @@ public class MessageServiceImpl extends BaseServiceImpl<MessageEntity, Long, Mes
         save(messageEntityByCode);
 
         return messageDto;
+    }
+
+    @Override
+    public String signMessage(Long messageCode, UserDtoByKey user) {
+        MessageDto messageDto = showTextMessage(messageCode, user);
+        String textMessage = messageDto.getEncryptedMessage();
+        String signature = digitalSignature.signatureMessage(user.getPrivateKey(), textMessage);
+
+        return "";
     }
 
 }

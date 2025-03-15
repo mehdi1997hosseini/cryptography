@@ -12,5 +12,5 @@ public interface MessageService extends BaseService<MessageEntity,Long> {
     Boolean sendMessage(SendMessageDto message);
     List<MessageReceiveDto> showAllMessages(String username);
     MessageDto showTextMessage(Long messageCode , UserDtoByKey user);
-
+    String signMessage(Long messageCode , UserDtoByKey user);
 }

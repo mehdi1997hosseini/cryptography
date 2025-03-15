@@ -13,7 +13,7 @@ public class SymmetricEncryptionServiceImpl implements SymmetricEncryptionServic
     @Override
     public String encryptWithSymmetric(String username, String data) {
         try {
-            SecretKey secretKey = MasterCryptographyService.KeyEncryption.generatorSecretKeyByUsername(username);
+            SecretKey secretKey = MasterCryptographyService.KeyGenerator.generatorSecretKeyByUsername(username);
             Cipher cipher  = Cipher.getInstance(SYMMETRIC_ALGORITHM);
             cipher.init(Cipher.ENCRYPT_MODE,secretKey);
             byte[] bytes = cipher.doFinal(data.getBytes());
@@ -26,7 +26,7 @@ public class SymmetricEncryptionServiceImpl implements SymmetricEncryptionServic
     @Override
     public String decryptWithSymmetric(String username, String encryptedData) {
         try {
-            SecretKey secretKey = MasterCryptographyService.KeyEncryption.generatorSecretKeyByUsername(username);
+            SecretKey secretKey = MasterCryptographyService.KeyGenerator.generatorSecretKeyByUsername(username);
             Cipher cipher = Cipher.getInstance(SYMMETRIC_ALGORITHM);
             cipher.init(Cipher.DECRYPT_MODE, secretKey);
             byte[] decodedBytes = Base64.getDecoder().decode(encryptedData);

@@ -34,5 +34,9 @@ public class MessageController extends BaseController<MessageEntity, Long, Messa
         return new ResponseEntity<>(service.showTextMessage(messageCode,user),HttpStatus.OK);
     }
 
+    public ResponseEntity<?> signatureOnMessage(@RequestParam Long messageCode, @RequestBody UserDtoByKey user) {
+        return null;
+    }
+
 
 }
