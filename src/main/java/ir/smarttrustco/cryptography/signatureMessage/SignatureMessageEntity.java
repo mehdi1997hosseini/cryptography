@@ -2,9 +2,7 @@ package ir.smarttrustco.cryptography.signatureMessage;
 
 import ir.smarttrustco.cryptography.basic.BaseEntity;
 import ir.smarttrustco.cryptography.messages.MessageEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,9 +16,14 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class SignatureMessageEntity extends BaseEntity<Long> {
 
-    @ManyToOne
-    private MessageEntity message;
-
+    @Lob
+    @Column(length = 2048)
     private String signature;
+    @Column(name = "IS_VERIFIED")
+    private Boolean isVerified = false;
+
+    @ManyToOne
+    @JoinColumn(name = "MESSAGE_ID")
+    private MessageEntity message;
 
 }

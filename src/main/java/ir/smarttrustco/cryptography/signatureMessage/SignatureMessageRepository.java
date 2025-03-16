@@ -5,4 +5,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SignatureMessageRepository extends BaseRepository<SignatureMessageEntity, Long> {
+    SignatureMessageEntity findSignatureMessageEntityByMessage_Code(Long messageCode);
 }

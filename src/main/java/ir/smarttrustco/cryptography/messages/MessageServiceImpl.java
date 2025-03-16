@@ -3,12 +3,7 @@ package ir.smarttrustco.cryptography.messages;
 import ir.smarttrustco.cryptography.basic.BaseServiceImpl;
 import ir.smarttrustco.cryptography.basic.utility.NumberUtils;
 import ir.smarttrustco.cryptography.cryptography.AsymmetricEncryptionService;
-import ir.smarttrustco.cryptography.cryptography.DigitalSignatureService;
-import ir.smarttrustco.cryptography.cryptography.SymmetricEncryptionService;
-import ir.smarttrustco.cryptography.messages.dto.MapperMessageReceive;
-import ir.smarttrustco.cryptography.messages.dto.MessageDto;
-import ir.smarttrustco.cryptography.messages.dto.MessageReceiveDto;
-import ir.smarttrustco.cryptography.messages.dto.SendMessageDto;
+import ir.smarttrustco.cryptography.messages.dto.*;
 import ir.smarttrustco.cryptography.user.UserEntity;
 import ir.smarttrustco.cryptography.user.UserService;
 import ir.smarttrustco.cryptography.user.dto.UserDtoByKey;
@@ -24,18 +19,16 @@ public class MessageServiceImpl extends BaseServiceImpl<MessageEntity, Long, Mes
     private final AsymmetricEncryptionService asymmetricEncryption;
     private final MapperMessageReceive messageReceiveMapper;
     private final MessageMapper messageMapper;
-    private final DigitalSignatureService digitalSignature;
 
 
     public MessageServiceImpl(MessageRepository repository, UserService userService,
                               AsymmetricEncryptionService asymmetricEncryption, MapperMessageReceive messageReceiveMapper,
-                              MessageMapper messageMapper, DigitalSignatureService digitalSignature) {
+                              MessageMapper messageMapper) {
         super(repository);
         this.userService = userService;
         this.asymmetricEncryption = asymmetricEncryption;
         this.messageReceiveMapper = messageReceiveMapper;
         this.messageMapper = messageMapper;
-        this.digitalSignature = digitalSignature;
     }
 
     @Override
@@ -94,12 +87,66 @@ public class MessageServiceImpl extends BaseServiceImpl<MessageEntity, Long, Mes
     }
 
     @Override
-    public String signMessage(Long messageCode, UserDtoByKey user) {
-        MessageDto messageDto = showTextMessage(messageCode, user);
-        String textMessage = messageDto.getEncryptedMessage();
-        String signature = digitalSignature.signatureMessage(user.getPrivateKey(), textMessage);
+    public MessageEntity findMessageEntityByMessageCode(Long messageCode, UserDtoByKey user) {
+        EntityGraph<MessageEntity> entityGraph = getEntityManager().createEntityGraph(MessageEntity.class);
+        entityGraph.addSubgraph("sender").addAttributeNodes("username");
+        entityGraph.addSubgraph("receiver").addAttributeNodes("username");
 
-        return "";
+        MessageEntity messageEntity = getEntityManager().createQuery("select m from MessageEntity m where " +
+                        "m.code = :messageCode ", MessageEntity.class)
+                .setParameter("messageCode", messageCode)
+                .setHint("jakarta.persistence.fetchgraph", entityGraph)
+                .getSingleResult();
+
+        if (messageEntity == null)
+            throw new RuntimeException("Message with code " + messageCode + " not found");
+
+        if (!messageEntity.getReceiver().getUsername().equals(user.getUsername()) && !messageEntity.getSender().getUsername().equals(user.getUsername()))
+            throw new RuntimeException("access denied ...");
+
+        if (!messageEntity.getIsRead()) {
+            messageEntity.setIsRead(true);
+            save(messageEntity);
+        }
+        messageEntity.setEncryptedMessage(asymmetricEncryption.decryptWithAsymmetric(user.getPrivateKey(), messageEntity.getEncryptedMessage()));
+
+        return messageEntity;
+    }
+
+    @Override
+    public Boolean updateMessageAfterSend(MessageUpdateDto updateDto) {
+        MessageEntity messageEntityByCode = repository.findMessageEntityByCode(updateDto.getCode());
+        if (messageEntityByCode == null)
+            throw new RuntimeException("Message with code " + updateDto.getCode() + " not found");
+
+        softDeleteById(messageEntityByCode.getId());
+        SendMessageDto sendMessageDto = new SendMessageDto();
+        sendMessageDto.setSender(updateDto.getSender());
+        sendMessageDto.setReceiver(updateDto.getReceiver());
+        sendMessageDto.setTitle(updateDto.getTitle());
+        sendMessageDto.setMessage(updateDto.getMessage());
+
+        return sendMessage(sendMessageDto);
+    }
+
+    @Override
+    public VerifyMessageDto findMessageByMessageCode(Long messageCode) {
+        EntityGraph<MessageEntity> entityGraph = getEntityManager().createEntityGraph(MessageEntity.class);
+        entityGraph.addSubgraph("sender").addAttributeNodes("publicKey");
+        entityGraph.addSubgraph("receiver").addAttributeNodes("publicKey");
+
+        MessageEntity messageEntity = getEntityManager().createQuery("select m from MessageEntity m where " +
+                        "m.code = :messageCode ", MessageEntity.class)
+                .setParameter("messageCode", messageCode)
+                .setHint("jakarta.persistence.fetchgraph", entityGraph)
+                .getSingleResult();
+
+        if (messageEntity == null)
+            throw new RuntimeException("Message with code " + messageCode + " not found");
+
+        return VerifyMessageDto.builder().messageDto(messageMapper.toDto(messageEntity))
+                .publicKeyReceiver(messageEntity.getReceiver().getPublicKey())
+                .publicKeySender(messageEntity.getReceiver().getPublicKey()).build();
     }
 
 }

@@ -4,7 +4,6 @@ import ir.smarttrustco.cryptography.basic.BaseEntity;
 import ir.smarttrustco.cryptography.user.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.apache.catalina.User;
 
 @Entity
 @Table(name = "TBL_MESSAGE")

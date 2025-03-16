@@ -75,7 +75,7 @@ interface MasterCryptographyService {
             try {
                 byte[] decode = Base64.getDecoder().decode(publicKeyStr);
                 X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(decode);
-                KeyFactory keyFactory = KeyFactory.getInstance(SYMMETRIC_ALGORITHM);
+                KeyFactory keyFactory = KeyFactory.getInstance(ASYMMETRIC_ALGORITHM);
                 return keyFactory.generatePublic(x509EncodedKeySpec);
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage());
@@ -87,7 +87,7 @@ interface MasterCryptographyService {
                 privateKeyStr = privateKeyStr.replaceAll("\\s+", "").trim();
                 byte[] decode = Base64.getDecoder().decode(privateKeyStr);
                 PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(decode);
-                KeyFactory keyFactory = KeyFactory.getInstance(SYMMETRIC_ALGORITHM);
+                KeyFactory keyFactory = KeyFactory.getInstance(ASYMMETRIC_ALGORITHM);
                 return keyFactory.generatePrivate(pkcs8EncodedKeySpec);
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage());
