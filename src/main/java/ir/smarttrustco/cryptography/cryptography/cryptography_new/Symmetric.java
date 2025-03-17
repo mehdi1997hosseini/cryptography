@@ -13,7 +13,7 @@ class Symmetric implements Cryptography {
 
     @Override
     public Map<KeyType, String> keyGenerator() {
-        return MasterCryptography.KeyGenerator.generateSymmetricSecretKey(algorithm.name(), keySize.getSize());
+        return MasterCryptography.KeyGenerator.generateSymmetricSecretKey(algorithm.name(), keySize.size());
     }
 
     @Override
@@ -24,5 +24,15 @@ class Symmetric implements Cryptography {
     @Override
     public String decrypt(Object key, String ciphertext) {
         return new DecryptDataService(algorithm).decryptWithSymmetric(key, ciphertext);
+    }
+
+    @Override
+    public String signature(Object privateKey, String plaintext) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public Boolean verify(Object publicKey, String ciphertext, String signature) {
+        throw new RuntimeException("Not implemented");
     }
 }

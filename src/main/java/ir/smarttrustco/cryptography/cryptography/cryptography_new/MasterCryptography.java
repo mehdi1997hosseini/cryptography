@@ -22,7 +22,6 @@ interface MasterCryptography {
                 throw new RuntimeException(e.getMessage());
             }
         }
-
         static SecretKey generateSecretKey(String algorithm, Integer keySize) {
             try {
                 javax.crypto.KeyGenerator keyGenerator = javax.crypto.KeyGenerator.getInstance(algorithm);
@@ -32,7 +31,6 @@ interface MasterCryptography {
                 throw new RuntimeException(e.getMessage());
             }
         }
-
         static SecretKey generatorSecretKeyByParam(String param, String algorithmHash, String algorithm, Integer keySize) {
             try {
                 MessageDigest messageDigest = MessageDigest.getInstance(algorithmHash);
@@ -43,18 +41,15 @@ interface MasterCryptography {
                 throw new RuntimeException(e);
             }
         }
-
         static Map<KeyType, String> generateAsymmetricKeys(KeyPair keyPair) {
             Map<KeyType, String> asymmetricKeys = new HashMap<>();
             asymmetricKeys.put(KeyType.ASYMMETRIC_PRIVATE_KEY, KeyConvertor.encodeKeyToString(keyPair.getPrivate()));
             asymmetricKeys.put(KeyType.ASYMMETRIC_PUBLIC_KEY, KeyConvertor.encodeKeyToString(keyPair.getPublic()));
             return asymmetricKeys;
         }
-
         static Map<KeyType, String> generatedAsymmetricKeys(String algorithm, Integer keySize) {
             return generateAsymmetricKeys(generateKeyPair(algorithm, keySize));
         }
-
         static Map<KeyType, String> generateSymmetricSecretKey(String algorithm, Integer keySize) {
             return Map.of(KeyType.SYMMETRIC_SECRET_KEY, MasterCryptography.KeyConvertor.convertSecretKeyToString(generateSecretKey(algorithm, keySize)));
         }

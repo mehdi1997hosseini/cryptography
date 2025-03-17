@@ -1,5 +1,6 @@
 package ir.smarttrustco.cryptography.cryptography.cryptography_new;
 
+import ir.smarttrustco.cryptography.cryptography.SignatureAlgorithmType;
 import lombok.Getter;
 
 import java.security.KeyPair;
@@ -14,10 +15,7 @@ public enum CryptographyType {
     ASYMMETRIC(Map.of(
             AlgorithmType.RSA, List.of(KeySizeType.BITS_1024, KeySizeType.BITS_2048, KeySizeType.BITS_4096),
             AlgorithmType.EC, List.of(KeySizeType.BITS_256, KeySizeType.BITS_384, KeySizeType.BITS_521)
-    ), List.of()),
-    DIGITAL_SIGNATURE(Map.of(AlgorithmType.RSA, List.of(KeySizeType.BITS_256, KeySizeType.BITS_512, KeySizeType.BITS_1024, KeySizeType.BITS_2048)
-            , AlgorithmType.EC, List.of(KeySizeType.BITS_256, KeySizeType.BITS_512))
-            , List.of());
+    ), List.of(DigitalSignatureAlgorithmType.SHA256withRSA, DigitalSignatureAlgorithmType.SHA384withRSA, DigitalSignatureAlgorithmType.SHA512withRSA));
 
 
     private final Map<AlgorithmType, List<KeySizeType>> algorithms;
@@ -40,9 +38,9 @@ public enum CryptographyType {
     public Map<KeyType, String> instanceCryptography(AlgorithmType algorithmType, KeySizeType keySizeType) {
         try {
             if (this == SYMMETRIC) {
-                return MasterCryptography.KeyGenerator.generateSymmetricSecretKey(algorithmType.name(), keySizeType.getSize());
-            } else if (this == ASYMMETRIC || this == DIGITAL_SIGNATURE) {
-                KeyPair keyPair = MasterCryptography.KeyGenerator.generateKeyPair(algorithmType.name(), keySizeType.getSize());
+                return MasterCryptography.KeyGenerator.generateSymmetricSecretKey(algorithmType.name(), keySizeType.size());
+            } else if (this == ASYMMETRIC) {
+                KeyPair keyPair = MasterCryptography.KeyGenerator.generateKeyPair(algorithmType.name(), keySizeType.size());
                 return MasterCryptography.KeyGenerator.generateAsymmetricKeys(keyPair);
             }
             throw new IllegalArgumentException("Unsupported Crypto Type");
@@ -51,13 +49,19 @@ public enum CryptographyType {
         }
     }
 
-    public Cryptography instanceCryptographyModel(AlgorithmType algorithmType, KeySizeType keySizeType ,DigitalSignatureAlgorithmType digitalSignatureAlgorithmType) {
+    public Cryptography instanceCryptographyModel(AlgorithmType algorithmType, KeySizeType keySizeType) {
         if (this == SYMMETRIC) {
             return new Symmetric(algorithmType, keySizeType);
-        } else if (this == ASYMMETRIC ) {
+        } else if (this == ASYMMETRIC) {
             return new Asymmetric(algorithmType, keySizeType);
-        } else if (this == DIGITAL_SIGNATURE) {
-            return new DigitalSignature(algorithmType, keySizeType , digitalSignatureAlgorithmType);
+        } else
+            throw new IllegalArgumentException("Unsupported Crypto Type");
+    }
+    public Cryptography instanceCryptographyModel(AlgorithmType algorithmType, KeySizeType keySizeType, DigitalSignatureAlgorithmType digitalSignatureAlgorithmType) {
+        if (this == SYMMETRIC) {
+            return new Symmetric(algorithmType, keySizeType);
+        } else if (this == ASYMMETRIC) {
+            return new Asymmetric(algorithmType, keySizeType ,digitalSignatureAlgorithmType);
         } else
             throw new IllegalArgumentException("Unsupported Crypto Type");
     }
