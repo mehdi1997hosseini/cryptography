@@ -18,9 +18,11 @@ public class UserEntity extends BaseEntity<Long> {
 
     @Column(unique = true, nullable = false)
     private String username;
-    @Column(nullable = false)
+    @Column(nullable = false,length = 2048)
+    @Lob
     private String password;
-    @Column(nullable = false)
+    @Column(nullable = false , length = 2048)
+    @Lob
     private String publicKey;
     @ManyToOne
     @JoinColumn(name = "PERSON_ID")
