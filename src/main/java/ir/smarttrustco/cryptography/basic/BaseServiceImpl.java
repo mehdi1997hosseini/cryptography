@@ -11,7 +11,7 @@ public class BaseServiceImpl<E extends BaseEntity<P>, P extends Number, R extend
     protected R repository;
     private Class<E> entityClass;
 
-    public BaseServiceImpl(Class<E> entityClass) {
+    private BaseServiceImpl(Class<E> entityClass) {
         this.entityClass = entityClass;
     }
 

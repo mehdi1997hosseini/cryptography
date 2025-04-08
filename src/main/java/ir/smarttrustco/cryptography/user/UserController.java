@@ -4,15 +4,11 @@ import ir.smarttrustco.cryptography.basic.BaseController;
 import ir.smarttrustco.cryptography.user.dto.UserLoginByKeyDto;
 import ir.smarttrustco.cryptography.user.dto.UserLoginDto;
 import ir.smarttrustco.cryptography.user.dto.UserRegistryDto;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("user")

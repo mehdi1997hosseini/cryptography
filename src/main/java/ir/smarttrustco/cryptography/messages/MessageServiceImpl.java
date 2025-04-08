@@ -1,15 +1,23 @@
 package ir.smarttrustco.cryptography.messages;
 
+import ir.smarttrustco.cryptography.attachmentFile.FileEntity;
+import ir.smarttrustco.cryptography.attachmentFile.FileService;
 import ir.smarttrustco.cryptography.basic.BaseServiceImpl;
+import ir.smarttrustco.cryptography.basic.converter.ConverterFileUtil;
 import ir.smarttrustco.cryptography.basic.utility.NumberUtils;
 import ir.smarttrustco.cryptography.cryptography.AsymmetricEncryptionService;
+import ir.smarttrustco.cryptography.cryptography.keystore.KeyStoreType;
 import ir.smarttrustco.cryptography.messages.dto.*;
 import ir.smarttrustco.cryptography.user.UserEntity;
 import ir.smarttrustco.cryptography.user.UserService;
 import ir.smarttrustco.cryptography.user.dto.UserDtoByKey;
 import jakarta.persistence.EntityGraph;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -19,19 +27,22 @@ public class MessageServiceImpl extends BaseServiceImpl<MessageEntity, Long, Mes
     private final AsymmetricEncryptionService asymmetricEncryption;
     private final MapperMessageReceive messageReceiveMapper;
     private final MessageMapper messageMapper;
+    private final FileService fileService;
 
 
     public MessageServiceImpl(MessageRepository repository, UserService userService,
                               AsymmetricEncryptionService asymmetricEncryption, MapperMessageReceive messageReceiveMapper,
-                              MessageMapper messageMapper) {
+                              MessageMapper messageMapper, FileService fileService) {
         super(repository);
         this.userService = userService;
         this.asymmetricEncryption = asymmetricEncryption;
         this.messageReceiveMapper = messageReceiveMapper;
         this.messageMapper = messageMapper;
+        this.fileService = fileService;
     }
 
     @Override
+    @Transactional
     public Boolean sendMessage(SendMessageDto message) {
         MessageEntity messageEntity = new MessageEntity();
         UserEntity sender = userService.getUserByUsername(message.getSender());
@@ -50,12 +61,23 @@ public class MessageServiceImpl extends BaseServiceImpl<MessageEntity, Long, Mes
 
         messageEntity.setEncryptedMessage(asymmetricEncryption.encryptWithAsymmetric(receiver.getPublicKey(), message.getMessage()));
 
-        try {
-            super.save(messageEntity);
-            return true;
-        } catch (Exception e) {
-            return false;
+        MessageEntity save = repository.save(messageEntity);
+        if (!message.getUploadFiles().isEmpty()){
+            message.getUploadFiles().forEach(uploadFile -> {
+                FileEntity fileEntity = new FileEntity();
+                String originalFilename = uploadFile.getOriginalFilename();
+                File file = new File(fileEntity.getFilePath() + originalFilename);
+                fileEntity.setFileName(originalFilename);
+                fileEntity.setMessage(save);
+                try {
+                    uploadFile.transferTo(file);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                fileService.save(fileEntity);
+            });
         }
+        return save.getId() != null;
     }
 
     @Override
@@ -74,7 +96,7 @@ public class MessageServiceImpl extends BaseServiceImpl<MessageEntity, Long, Mes
     }
 
     @Override
-    public MessageDto showTextMessage(Long messageCode, UserDtoByKey user) {
+    public ShowMessageDto showTextMessage(Long messageCode, UserDtoByKey user) {
         MessageEntity messageEntityByCode = repository.findMessageEntityByCode(messageCode);
         if (messageEntityByCode == null)
             throw new RuntimeException("Message with code " + messageCode + " not found");
@@ -82,8 +104,8 @@ public class MessageServiceImpl extends BaseServiceImpl<MessageEntity, Long, Mes
         MessageDto messageDto = messageMapper.toDto(messageEntityByCode);
         messageDto.setEncryptedMessage(asymmetricEncryption.decryptWithAsymmetric(user.getPrivateKey(), messageEntityByCode.getEncryptedMessage()));
         save(messageEntityByCode);
-
-        return messageDto;
+        return ShowMessageDto.builder().message(messageDto)
+                .file(fileService.findAllFileByMessageId(messageEntityByCode.getId())).build();
     }
 
     @Override
@@ -111,6 +133,17 @@ public class MessageServiceImpl extends BaseServiceImpl<MessageEntity, Long, Mes
         messageEntity.setEncryptedMessage(asymmetricEncryption.decryptWithAsymmetric(user.getPrivateKey(), messageEntity.getEncryptedMessage()));
 
         return messageEntity;
+    }
+
+    @Override
+    public MessageEntity findMessageEntityByMessageCode(Long messageCode) {
+        EntityGraph<MessageEntity> entityGraph = getEntityManager().createEntityGraph(MessageEntity.class);
+        entityGraph.addSubgraph("sender").addAttributeNodes("id","username");
+        entityGraph.addSubgraph("receiver").addAttributeNodes("id","username");
+        return getEntityManager().createQuery("select e from MessageEntity e where e.code = :messageCode", MessageEntity.class)
+                .setParameter("messageCode", messageCode)
+                .setHint("jakarta.persistence.fetchgraph", entityGraph)
+                .getSingleResult();
     }
 
     @Override
@@ -148,5 +181,23 @@ public class MessageServiceImpl extends BaseServiceImpl<MessageEntity, Long, Mes
                 .publicKeyReceiver(messageEntity.getReceiver().getPublicKey())
                 .publicKeySender(messageEntity.getReceiver().getPublicKey()).build();
     }
+
+    @Override
+    public ShowMessageDto showTextMessageAndAllFile(ReqShowTextMessageAndFilesDto request) {
+        MessageEntity messageEntity = findMessageEntityByMessageCode(request.getMessageCode());
+        List<FileEntity> resultFiles = fileService.findAllFileByMessageId(messageEntity.getId());
+        if (resultFiles == null || resultFiles.isEmpty())
+            return null;
+
+        messageEntity.setIsRead(true);
+        save(messageEntity);
+        MessageDto messageDto = messageMapper.toDto(messageEntity);
+        File file = ConverterFileUtil.convertMultipartFileToFile(request.getFile());
+        String privateKey = ConverterFileUtil.readFileAndConvertToString(file);
+        messageDto.setEncryptedMessage(asymmetricEncryption.decryptWithAsymmetric(privateKey, messageEntity.getEncryptedMessage()));
+        return ShowMessageDto.builder().message(messageDto)
+                .file(resultFiles).build();
+    }
+
 
 }
